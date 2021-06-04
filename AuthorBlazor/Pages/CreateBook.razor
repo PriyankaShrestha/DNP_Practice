@@ -1,0 +1,72 @@
+﻿@page "/CreateBook"
+@using AuthorBlazor.Model
+@using AuthorBlazor.Data.BookData
+@using AuthorBlazor.Data.AuthorData
+@inject IBookService BookService
+@inject IAuthorService AuthorService
+
+<h3>Register new book</h3>
+
+<EditForm Model="@newBook" OnValidSubmit="@AddBook">
+    <DataAnnotationsValidator/>
+    <ValidationSummary/>
+    <div class="form-group row">
+        <label class="col-sm-2 col-form-label">ISBN:</label>
+        <InputNumber class="col-sm-6 form-control" @bind-Value="@newBook.ISBN"/>
+    </div>
+    <div class="form-group row">
+        <label class="col-sm-2 col-form-label">Title:</label>
+        <InputText class="col-sm-6 form-control" @bind-Value="@newBook.Title"/>
+    </div>
+    <div class="form-group row">
+        <label class="col-sm-2 col-form-label">Publication Year:</label>
+        <InputNumber class="col-sm-6 form-control" @bind-Value="@newBook.PublicationYear"/>
+    </div>
+    <div class="form-group row">
+        <label class="col-sm-2 col-form-label">Number of Pages:</label>
+        <InputNumber class="col-sm-6 form-control" @bind-Value="@newBook.NumOfPages"/>
+    </div>
+    <div class="form-group row">
+        <label class="col-sm-2 col-form-label">Genre:</label>
+        <InputText class="col-sm-6 form-control" @bind-Value="@newBook.Genre"/>
+    </div>
+    <div>
+        <select class="custom-select" @onchange="SelectedAuthor">
+            <option value="Select">Choose Author</option>
+            @foreach (var author in Authors)
+            {
+                <option value="@author.Id"> @author.FirstName</option>
+            }
+        </select>
+    </div>
+    <div style="color:red">@Message</div>
+    <button disabled="@Loading" class="btn btn-light">Register
+        @if (Loading) 
+        {
+            <span class="spinner-border spinner-border-sm mr-1"></span>
+        }
+    </button>
+</EditForm>
+
+@code {
+    private Book newBook = new();
+    private string Message { get; set; }
+    private bool Loading { get; set; }
+    private int AuthorId { get; set; }
+    private IList<Author> Authors { get; set; }
+
+    protected async override Task OnInitializedAsync()
+    {
+        Authors = await AuthorService.GetAuthorsAsync();
+    }
+
+    private async Task AddBook()
+    {
+        Loading = true;
+        string message = await BookService.AddBookAsync(newBook, AuthorId);
+    }
+    
+    private void SelectedAuthor(ChangeEventArgs e) {  
+        AuthorId = (int)e.Value;
+    } 
+}

@@ -1,0 +1,130 @@
+﻿@page "/ViewBooks"
+@using AuthorBlazor.Model
+@using AuthorBlazor.Data.BookData
+@using AuthorBlazor.Data.AuthorData
+@inject IAuthorService AuthorService
+@inject IBookService BookService
+
+
+<h1>Book list</h1>
+
+<p>
+    Filter by Author's First Name: <input type="text" @oninput="@((arg) => FilterByAuthorsName(arg))"
+                              style="width:50px"/>
+</p>
+<p><input type="text" @oninput="@((arg) => FilterByBookTitle(arg))"
+                                 style="width:50px"/>
+</p>
+
+@if (filteredBooks == null)
+{
+    <p>
+        <em>Loading...</em>
+    </p>
+}
+else if (!filteredBooks.Any())
+{
+    <p>
+        <em>Please register some books first.</em>
+    </p>
+}
+else
+{
+    <table class="table">
+        <thead>
+        <tr>
+            <th>Title</th>
+            <th>PubYear</th>
+            <th>NumOfPages</th>
+            <th>AuthorFirstName</th>
+            <th>AuthorLastName</th>
+            <th>Delete</th>
+        </tr>
+        </thead>
+        
+        <tbody>
+        @foreach (var book in filteredBooks)
+        {
+            <tr>
+                    <td>@book.Title</td>
+                    <td>@book.PublicationYear</td>
+                    <td>@book.NumOfPages</td>
+                    <td></td>
+                    <td></td>
+                    <td>
+                        <button @onclick="@(() => RemoveBook(book.ISBN))">
+                            <i class="oi-trash" style="color: red"/>
+                        </button>
+                    </td>
+                </tr>
+        }
+        </tbody>
+    </table>
+}
+
+@code {
+    private IList<Author> Authors;
+    private IList<Book> allBooks;
+    private IList<Book> filteredBooks;
+
+    private string? filterByAuthorsName;
+    private string? filterByBookTitle;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Authors = await AuthorService.GetAuthorsAsync();
+        foreach (Author auth in Authors)
+        {
+            foreach (Book book in auth.Books)
+            {
+                allBooks.Add(book);
+            }
+        }
+        filteredBooks = allBooks;
+    }
+
+    private void RemoveBook(int ISBN)
+    {
+        Book book = allBooks.FirstOrDefault(b => b.ISBN == ISBN);
+        BookService.DeleteBookAsync(ISBN);
+        allBooks.Remove(book);
+        filteredBooks.Remove(book);
+    }
+
+    private void FilterByAuthorsName(ChangeEventArgs evt)
+    {
+        string? filterbyauthorname = null;
+        try
+        {
+            filterbyauthorname = evt.Value.ToString();
+        }
+        catch (Exception e){}
+        if (filterbyauthorname != null)
+        {
+            Author author = Authors.FirstOrDefault(t => t.FirstName.Equals(filterbyauthorname));
+            filteredBooks = author.Books;
+        }
+        else
+        {
+            filteredBooks = allBooks;
+        }
+    }
+
+    private void FilterByBookTitle(ChangeEventArgs evt)
+    {
+        filterByBookTitle = null;
+        try
+        {
+            filterByBookTitle = evt.Value.ToString();
+        }
+        catch(Exception e){}
+        if (filterByBookTitle != null)
+        {
+            filteredBooks = allBooks.Where(t => t.Title.Equals(filterByBookTitle)).ToList();
+        }
+        else
+        {
+            filteredBooks = allBooks;
+        }
+    }
+}

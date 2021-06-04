@@ -1,0 +1,40 @@
+﻿@page "/CreateAuthor"
+@using AuthorBlazor.Model
+@using AuthorBlazor.Data.AuthorData
+@inject IAuthorService AuthorService
+
+
+<h2>Register Author</h2>
+<EditForm Model="@newAuthor" OnValidSubmit="@AddAuthor">
+    <DataAnnotationsValidator/>
+    <ValidationSummary/>
+    <div class="form-group row">
+        <label class="col-sm-2 col-form-label">First Name:</label>
+        <InputText class="col-sm-6 form-control" @bind-Value="@newAuthor.FirstName"/>
+    </div>
+    <div class="form-group row">
+        <label class="col-sm-2 col-form-label">Last Name:</label>
+        <InputText class="col-sm-6 form-control" @bind-Value="@newAuthor.LastName"/>
+    </div>
+    <div style="color:red">@Message</div>
+    <button disabled="@Loading" class="btn btn-light">Register
+        @if (Loading) 
+        {
+            <span class="spinner-border spinner-border-sm mr-1"></span>
+        }
+    </button>
+</EditForm>
+
+@code {
+    private Author newAuthor = new();
+    private string Message { get; set; }
+    private bool Loading { get; set; }
+
+    private async Task AddAuthor()
+    {
+        Loading = true;
+        string message = await AuthorService.AddAuthorAsync(newAuthor);
+        Message = message;
+        Loading = false;
+    }
+}
