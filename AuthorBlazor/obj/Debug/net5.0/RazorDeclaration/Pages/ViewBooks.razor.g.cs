@@ -112,9 +112,11 @@ using AuthorBlazor.Data.AuthorData;
         }
         #pragma warning restore 1998
 #nullable restore
-#line 65 "C:\Users\HP\RiderProjects\ExamA20-299543\AuthorBlazor\Pages\ViewBooks.razor"
+#line 55 "C:\Users\HP\RiderProjects\ExamA20-299543\AuthorBlazor\Pages\ViewBooks.razor"
        
-    private IList<Author> Authors;
+    private IList<Author> Authors = new List<Author>();
+    private IList<Author> filteredAuthor = new List<Author>();
+    
     private IList<Book> allBooks;
     private IList<Book> filteredBooks;
 
@@ -124,22 +126,20 @@ using AuthorBlazor.Data.AuthorData;
     protected override async Task OnInitializedAsync()
     {
         Authors = await AuthorService.GetAuthorsAsync();
-        foreach (Author auth in Authors)
-        {
-            foreach (Book book in auth.Books)
-            {
-                allBooks.Add(book);
-            }
-        }
-        filteredBooks = allBooks;
+        filteredAuthor = Authors;
     }
 
     private void RemoveBook(int ISBN)
     {
-        Book book = allBooks.FirstOrDefault(b => b.ISBN == ISBN);
-        BookService.DeleteBookAsync(ISBN);
-        allBooks.Remove(book);
-        filteredBooks.Remove(book);
+        try
+        {
+            BookService.DeleteBookAsync(ISBN);
+            NavMgr.NavigateTo("/ViewBooks");
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e.Message);
+        }
     }
 
     private void FilterByAuthorsName(ChangeEventArgs evt)
@@ -152,12 +152,11 @@ using AuthorBlazor.Data.AuthorData;
         catch (Exception e){}
         if (filterbyauthorname != null)
         {
-            Author author = Authors.FirstOrDefault(t => t.FirstName.Equals(filterbyauthorname));
-            filteredBooks = author.Books;
+           filteredAuthor = Authors.Where(t => t.FirstName.Equals(filterbyauthorname)).ToList();
         }
         else
         {
-            filteredBooks = allBooks;
+            filteredAuthor = Authors;
         }
     }
 
@@ -182,6 +181,7 @@ using AuthorBlazor.Data.AuthorData;
 #line default
 #line hidden
 #nullable disable
+        [global::Microsoft.AspNetCore.Components.InjectAttribute] private NavigationManager NavMgr { get; set; }
         [global::Microsoft.AspNetCore.Components.InjectAttribute] private IBookService BookService { get; set; }
         [global::Microsoft.AspNetCore.Components.InjectAttribute] private IAuthorService AuthorService { get; set; }
     }

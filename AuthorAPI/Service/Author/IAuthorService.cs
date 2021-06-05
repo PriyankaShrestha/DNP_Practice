@@ -6,7 +6,7 @@ namespace AuthorAPI.Service
 {
     public interface IAuthorService
     {
-        Task<Author> AddAuthorAsync(Author author);
+        Task<string> AddAuthorAsync(Author author);
         Task<IList<Author>> GetAuthorsAsync();
     }
 }

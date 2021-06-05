@@ -25,7 +25,7 @@ namespace AuthorAPI.Model
 
         public override string ToString()
         {
-            return ISBN + " " + "Title";
+            return ISBN + " " + Title;
         }
     }
 }

@@ -19,7 +19,7 @@ namespace AuthorAPI.Controllers
         }
         
         [HttpPost]
-        public async Task<ActionResult<Author>> AddAuthor([FromBody] Author author)
+        public async Task<ActionResult<string>> AddAuthor([FromBody] Author author)
         {
             if (!ModelState.IsValid)
             {
@@ -27,8 +27,7 @@ namespace AuthorAPI.Controllers
             }
             try
             {
-                //Console.WriteLine(author.ToString());
-                Author toAdd = await authorService.AddAuthorAsync(author);
+                string toAdd = await authorService.AddAuthorAsync(author);
                 Console.Write(toAdd.ToString());
                 return Created($"/{toAdd}", toAdd);
             }

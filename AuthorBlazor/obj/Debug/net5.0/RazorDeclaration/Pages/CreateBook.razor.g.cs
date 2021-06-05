@@ -112,13 +112,13 @@ using AuthorBlazor.Data.AuthorData;
         }
         #pragma warning restore 1998
 #nullable restore
-#line 51 "C:\Users\HP\RiderProjects\ExamA20-299543\AuthorBlazor\Pages\CreateBook.razor"
+#line 54 "C:\Users\HP\RiderProjects\ExamA20-299543\AuthorBlazor\Pages\CreateBook.razor"
        
     private Book newBook = new();
     private string Message { get; set; }
     private bool Loading { get; set; }
-    private int AuthorId { get; set; }
-    private IList<Author> Authors { get; set; }
+    private IList<Author> Authors = new List<Author>();
+    private int selectedAuthor { get; set; }
 
     protected async override Task OnInitializedAsync()
     {
@@ -127,12 +127,23 @@ using AuthorBlazor.Data.AuthorData;
 
     private async Task AddBook()
     {
-        Loading = true;
-        string message = await BookService.AddBookAsync(newBook, AuthorId);
+        try
+        {
+            Loading = true;
+            Console.WriteLine(selectedAuthor);
+            Message = await BookService.AddBookAsync(newBook, selectedAuthor);
+            Loading = false;
+        }
+        catch (Exception e)
+        {
+            Message = e.Message;
+            Loading = false;
+        }
     }
     
     private void SelectedAuthor(ChangeEventArgs e) {  
-        AuthorId = (int)e.Value;
+        string Id = (string)e.Value;
+        selectedAuthor = Int32.Parse(Id);
     } 
 
 #line default

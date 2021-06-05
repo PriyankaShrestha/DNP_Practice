@@ -12,10 +12,15 @@ namespace AuthorAPI.Controllers
     public class BookController : ControllerBase
     {
         private IBookService bookService;
+
+        public BookController(IBookService service)
+        {
+            bookService = service;
+        }
         
         [HttpPost]
-        [Route("{Id:int}")]
-        public async Task<ActionResult<Book>> AddBook([FromBody] Book book,[FromRoute] int authorId)
+        [Route("{AuthorId:int}")]
+        public async Task<ActionResult<string>> AddBook([FromBody] Book book,[FromRoute] int authorId)
         {
             if (!ModelState.IsValid)
             {
@@ -23,7 +28,8 @@ namespace AuthorAPI.Controllers
             }
             try
             {
-                Book toAdd = await bookService.AddBookAsync(book, authorId);
+                string toAdd = await bookService.AddBookAsync(book, authorId);
+                Console.WriteLine(toAdd.ToString() + "---------------------*******************");
                 return Created($"/{toAdd}", toAdd);
             }
             catch (Exception e)
@@ -39,6 +45,21 @@ namespace AuthorAPI.Controllers
             {
                 IList<Book> books = await bookService.GetBooksAsync();
                 return Ok(books);
+            }
+            catch (Exception e)
+            {
+                return StatusCode(500, e.Message);
+            }
+        }
+
+        [HttpDelete]
+        [Route("{bookId:int}")]
+        public async Task<ActionResult<string>> DeleteBook([FromRoute] int bookId)
+        {
+            try
+            {
+                string message = await bookService.DeleteBookAsync(bookId);
+                return message;
             }
             catch (Exception e)
             {

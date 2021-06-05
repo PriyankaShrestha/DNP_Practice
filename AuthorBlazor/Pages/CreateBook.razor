@@ -7,6 +7,8 @@
 
 <h3>Register new book</h3>
 
+
+
 <EditForm Model="@newBook" OnValidSubmit="@AddBook">
     <DataAnnotationsValidator/>
     <ValidationSummary/>
@@ -30,14 +32,15 @@
         <label class="col-sm-2 col-form-label">Genre:</label>
         <InputText class="col-sm-6 form-control" @bind-Value="@newBook.Genre"/>
     </div>
-    <div>
-        <select class="custom-select" @onchange="SelectedAuthor">
-            <option value="Select">Choose Author</option>
-            @foreach (var author in Authors)
-            {
-                <option value="@author.Id"> @author.FirstName</option>
-            }
-        </select>
+    <div class="form-group row">
+    <label class="col-sm-2 col-form-label">Select Author:</label>
+    <select id="authors" @onchange="@((arg) => SelectedAuthor(arg))">
+        <option></option>
+        @foreach (var author in Authors)
+        {
+            <option value="@author.Id">@author.ToString()</option>
+        }
+    </select>
     </div>
     <div style="color:red">@Message</div>
     <button disabled="@Loading" class="btn btn-light">Register
@@ -52,8 +55,8 @@
     private Book newBook = new();
     private string Message { get; set; }
     private bool Loading { get; set; }
-    private int AuthorId { get; set; }
-    private IList<Author> Authors { get; set; }
+    private IList<Author> Authors = new List<Author>();
+    private int selectedAuthor { get; set; }
 
     protected async override Task OnInitializedAsync()
     {
@@ -62,11 +65,22 @@
 
     private async Task AddBook()
     {
-        Loading = true;
-        string message = await BookService.AddBookAsync(newBook, AuthorId);
+        try
+        {
+            Loading = true;
+            Console.WriteLine(selectedAuthor);
+            Message = await BookService.AddBookAsync(newBook, selectedAuthor);
+            Loading = false;
+        }
+        catch (Exception e)
+        {
+            Message = e.Message;
+            Loading = false;
+        }
     }
     
     private void SelectedAuthor(ChangeEventArgs e) {  
-        AuthorId = (int)e.Value;
+        string Id = (string)e.Value;
+        selectedAuthor = Int32.Parse(Id);
     } 
 }

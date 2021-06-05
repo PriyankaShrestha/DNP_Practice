@@ -4,66 +4,58 @@
 @using AuthorBlazor.Data.AuthorData
 @inject IAuthorService AuthorService
 @inject IBookService BookService
+@inject NavigationManager NavMgr
 
 
 <h1>Book list</h1>
 
 <p>
     Filter by Author's First Name: <input type="text" @oninput="@((arg) => FilterByAuthorsName(arg))"
-                              style="width:50px"/>
+                              style="width:500px"/>
 </p>
-<p><input type="text" @oninput="@((arg) => FilterByBookTitle(arg))"
-                                 style="width:50px"/>
+<p> Filter by Book Title: <input type="text" @oninput="@((arg) => FilterByBookTitle(arg))"
+                                 style="width:500px"/>
 </p>
 
-@if (filteredBooks == null)
-{
-    <p>
-        <em>Loading...</em>
-    </p>
-}
-else if (!filteredBooks.Any())
-{
-    <p>
-        <em>Please register some books first.</em>
-    </p>
-}
-else
-{
-    <table class="table">
-        <thead>
-        <tr>
-            <th>Title</th>
-            <th>PubYear</th>
-            <th>NumOfPages</th>
-            <th>AuthorFirstName</th>
-            <th>AuthorLastName</th>
-            <th>Delete</th>
-        </tr>
-        </thead>
+<table class="table">
+    <thead>
+    <tr>
+        <th>Title</th>
+        <th>PubYear</th>
+        <th>NumOfPages</th>
+        <th>AuthorFirstName</th>
+        <th>AuthorLastName</th>
+        <th>Delete</th>
+    </tr>
+    </thead>
         
-        <tbody>
-        @foreach (var book in filteredBooks)
+    <tbody>
+    @foreach (var author in filteredAuthor)
+    {
+        @foreach(var book in author.Books)
         {
             <tr>
-                    <td>@book.Title</td>
-                    <td>@book.PublicationYear</td>
-                    <td>@book.NumOfPages</td>
-                    <td></td>
-                    <td></td>
-                    <td>
-                        <button @onclick="@(() => RemoveBook(book.ISBN))">
-                            <i class="oi-trash" style="color: red"/>
-                        </button>
-                    </td>
-                </tr>
+                <td>@book.Title</td>
+                <td>@book.PublicationYear</td>
+                <td>@book.NumOfPages</td>
+                <td>@author.FirstName</td>
+                <td>@author.LastName</td>
+                <td>
+                    <button @onclick="@(() => RemoveBook(book.ISBN))">
+                        <i class="oi-trash" style="color: red"/>
+                    </button>
+                </td>
+            </tr>
         }
-        </tbody>
-    </table>
-}
+    }
+    </tbody>
+</table>
+
 
 @code {
-    private IList<Author> Authors;
+    private IList<Author> Authors = new List<Author>();
+    private IList<Author> filteredAuthor = new List<Author>();
+    
     private IList<Book> allBooks;
     private IList<Book> filteredBooks;
 
@@ -73,46 +65,43 @@ else
     protected override async Task OnInitializedAsync()
     {
         Authors = await AuthorService.GetAuthorsAsync();
-        foreach (Author auth in Authors)
-        {
-            foreach (Book book in auth.Books)
-            {
-                allBooks.Add(book);
-            }
-        }
-        filteredBooks = allBooks;
+        filteredAuthor = Authors;
     }
 
     private void RemoveBook(int ISBN)
     {
-        Book book = allBooks.FirstOrDefault(b => b.ISBN == ISBN);
-        BookService.DeleteBookAsync(ISBN);
-        allBooks.Remove(book);
-        filteredBooks.Remove(book);
+        try
+        {
+            BookService.DeleteBookAsync(ISBN);
+            NavMgr.NavigateTo("/ViewBooks");
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e.Message);
+        }
     }
 
     private void FilterByAuthorsName(ChangeEventArgs evt)
     {
-        string? filterbyauthorname = null;
+        filterByAuthorsName = null;
         try
         {
-            filterbyauthorname = evt.Value.ToString();
+            filterByAuthorsName = evt.Value.ToString();
         }
         catch (Exception e){}
-        if (filterbyauthorname != null)
+        if (filterByAuthorsName != null)
         {
-            Author author = Authors.FirstOrDefault(t => t.FirstName.Equals(filterbyauthorname));
-            filteredBooks = author.Books;
+           filteredAuthor = Authors.Where(t => t.FirstName.Equals(filterByAuthorsName)).ToList();
         }
         else
         {
-            filteredBooks = allBooks;
+            filteredAuthor = Authors;
         }
     }
 
     private void FilterByBookTitle(ChangeEventArgs evt)
     {
-        filterByBookTitle = null;
+       filterByBookTitle = null;
         try
         {
             filterByBookTitle = evt.Value.ToString();

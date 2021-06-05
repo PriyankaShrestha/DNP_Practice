@@ -10,7 +10,7 @@ namespace AuthorAPI.Service
 {
     public class AuthorService : IAuthorService
     {
-        public async Task<Author> AddAuthorAsync(Author author)
+        public async Task<string> AddAuthorAsync(Author author)
         {
             using (DataContext context = new DataContext())
             {
@@ -18,9 +18,8 @@ namespace AuthorAPI.Service
                 EntityEntry<Author> toAdd = await context.Authors.AddAsync(author);
                 if (toAdd != null)
                 {
-                    Console.WriteLine(toAdd.Entity + "///////////********************");
                     await context.SaveChangesAsync();
-                    return toAdd.Entity;
+                    return "Successful!";
                 }
                 throw new Exception("Failed to add the author!");
             }

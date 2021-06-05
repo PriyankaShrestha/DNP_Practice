@@ -22,9 +22,10 @@ namespace AuthorBlazor.Data.BookData
                 Encoding.UTF8,
                 "application/json"
             );
-
-            await client.PostAsync($"{uri}/books", content);
-            return "Successful";
+            
+            HttpResponseMessage message = await client.PostAsync($"{uri}/books/{authorId}", content);
+            string response = await message.Content.ReadAsStringAsync(); 
+            return response;
         }
 
         public async Task<IList<Book>> GetBooksAsync()
@@ -40,13 +41,14 @@ namespace AuthorBlazor.Data.BookData
                 return books;
             }
 
-            throw new Exception(response.Content.ReadAsStringAsync().Result);
+            throw new Exception(await response.Content.ReadAsStringAsync());
         }
 
         public async Task<string> DeleteBookAsync(int bookId)
         {
+            Console.WriteLine("Book to remove" + bookId);
             HttpResponseMessage response = await client.DeleteAsync($"{uri}/books/{bookId}");
-            return response.Content.ReadAsStringAsync().Result;
+            return await response.Content.ReadAsStringAsync();
         }
     }
 }

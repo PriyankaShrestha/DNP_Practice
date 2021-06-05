@@ -7,7 +7,7 @@ namespace AuthorAPI.Service.Books
 {
     public interface IBookService
     {
-        Task<Book> AddBookAsync(Book book, int authorId);
+        Task<string> AddBookAsync(Book book, int authorId);
         Task<IList<Book>> GetBooksAsync();
         Task<string> DeleteBookAsync(int bookId);
     }

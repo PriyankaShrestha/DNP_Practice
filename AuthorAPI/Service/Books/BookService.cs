@@ -1,23 +1,31 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using AuthorAPI.Model;
 using AuthorAPI.Persistence;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 
 namespace AuthorAPI.Service.Books
 {
     public class BookService : IBookService
     {
-        public async Task<Book> AddBookAsync(Book book, int authorId)
+        public async Task<string> AddBookAsync(Book book, int authorId)
         {
             using (DataContext context = new DataContext())
             {
-                Author author = await context.Authors.FirstOrDefaultAsync(a => a.Id == authorId);
-                author.Books.Add(book);
-                context.Update(author);
-                await context.SaveChangesAsync();
-                return book;
+                EntityEntry<Book> toAdd = await context.Books.AddAsync(book);
+                if (toAdd != null)
+                {
+                    Author auth = await context.Authors.Include(b => b.Books)
+                        .FirstOrDefaultAsync(a => a.Id == authorId);
+                    auth.Books.Add(toAdd.Entity);
+                    context.Update(auth);
+                    await context.SaveChangesAsync();
+                    return "Successful!";
+                }
+                throw new Exception("Cannot add the book!");
             }
         }
 
@@ -30,8 +38,7 @@ namespace AuthorAPI.Service.Books
                 {
                     return books;
                 }
-
-                throw new Exception("Books not registered!");
+                throw new Exception("No books registered!");
             }
         }
 
