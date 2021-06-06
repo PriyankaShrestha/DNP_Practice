@@ -103,6 +103,13 @@ using AuthorBlazor.Data.AuthorData;
 #line default
 #line hidden
 #nullable disable
+#nullable restore
+#line 5 "C:\Users\HP\RiderProjects\ExamA20-299543\AuthorBlazor\Pages\ViewBooks.razor"
+using System.Runtime.CompilerServices;
+
+#line default
+#line hidden
+#nullable disable
     [Microsoft.AspNetCore.Components.RouteAttribute("/ViewBooks")]
     public partial class ViewBooks : Microsoft.AspNetCore.Components.ComponentBase
     {
@@ -112,29 +119,59 @@ using AuthorBlazor.Data.AuthorData;
         }
         #pragma warning restore 1998
 #nullable restore
-#line 55 "C:\Users\HP\RiderProjects\ExamA20-299543\AuthorBlazor\Pages\ViewBooks.razor"
+#line 71 "C:\Users\HP\RiderProjects\ExamA20-299543\AuthorBlazor\Pages\ViewBooks.razor"
        
+    // 
+    // private IList<Author> filteredAuthor = new List<Author>();
     private IList<Author> Authors = new List<Author>();
-    private IList<Author> filteredAuthor = new List<Author>();
-    
-    private IList<Book> allBooks;
-    private IList<Book> filteredBooks;
+    private IList<Book> allBooks = new List<Book>();
+    private IList<Book> filteredBooks = new List<Book>();
 
     private string? filterByAuthorsName;
     private string? filterByBookTitle;
 
     protected override async Task OnInitializedAsync()
     {
+        // Authors = await AuthorService.GetAuthorsAsync();
+        // filteredAuthor = Authors;
+        allBooks = await BookService.GetBooksAsync();
+        filteredBooks = allBooks;
         Authors = await AuthorService.GetAuthorsAsync();
-        filteredAuthor = Authors;
+    }
+
+    private string getFirstName(Book book)
+    {
+        foreach (Author auth in Authors)
+        {
+            if (auth.Books.FirstOrDefault(b => b.ToString().Equals(book.ToString())) != null)
+            {
+                Console.WriteLine(auth);
+                return auth.FirstName;
+            }
+        }
+        return "No Author";
+    }
+    
+    private string getLastName(Book book)
+    {
+        foreach (Author auth in Authors)
+        {
+            if (auth.Books.FirstOrDefault(b => b.ToString().Equals(book.ToString())) != null)
+            {
+                return auth.LastName;
+            }
+        }
+        return "No Author";
     }
 
     private void RemoveBook(int ISBN)
     {
         try
         {
+            Book book = allBooks.FirstOrDefault(b => b.ISBN == ISBN);
             BookService.DeleteBookAsync(ISBN);
-            NavMgr.NavigateTo("/ViewBooks");
+            allBooks.Remove(book);
+            filteredBooks.Remove(book);
         }
         catch (Exception e)
         {
@@ -144,25 +181,35 @@ using AuthorBlazor.Data.AuthorData;
 
     private void FilterByAuthorsName(ChangeEventArgs evt)
     {
-        string? filterbyauthorname = null;
+        filterByAuthorsName = null;
+        IList<Book> books = new List<Book>();
         try
         {
-            filterbyauthorname = evt.Value.ToString();
+            filterByAuthorsName = evt.Value.ToString();
         }
         catch (Exception e){}
-        if (filterbyauthorname != null)
+        if (filterByAuthorsName != null)
         {
-           filteredAuthor = Authors.Where(t => t.FirstName.Equals(filterbyauthorname)).ToList();
+            foreach (Author author in Authors)
+            {
+                if (author.FirstName.Contains(filterByAuthorsName))
+                {
+                    foreach (Book book in author.Books)
+                    {
+                        books.Add(book);
+                    }
+                }
+            }
+            filteredBooks = books;
         }
         else
         {
-            filteredAuthor = Authors;
+            filteredBooks = allBooks;
         }
     }
 
-    private void FilterByBookTitle(ChangeEventArgs evt)
+    private async void FilterByBookTitle(ChangeEventArgs evt)
     {
-        filterByBookTitle = null;
         try
         {
             filterByBookTitle = evt.Value.ToString();
@@ -170,7 +217,7 @@ using AuthorBlazor.Data.AuthorData;
         catch(Exception e){}
         if (filterByBookTitle != null)
         {
-            filteredBooks = allBooks.Where(t => t.Title.Equals(filterByBookTitle)).ToList();
+            filteredBooks = allBooks.Where(b => b.Title.Contains(filterByBookTitle)).ToList();
         }
         else
         {
